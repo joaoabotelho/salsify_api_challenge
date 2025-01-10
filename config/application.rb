@@ -33,6 +33,6 @@ module SalsifyApi
 
     config.autoload_paths << Rails.root.join("lib")
 
-    config.autoload_paths << Rails.root.join('lib')
+    config.cache_store = :file_store, "#{Rails.root}/tmp/cache"
   end
 end

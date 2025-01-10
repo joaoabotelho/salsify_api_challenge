@@ -24,12 +24,12 @@ describe FileProcessor do
   describe 'preprocess' do
     it 'calculates the correct offsets for each line' do\
       file_processor.preprocess
-      expect(file_processor.offsets).to eq([ 7, 14, 21 ])
+      expect(file_processor.offsets).to eq([ 0, 7, 14 ])
     end
 
     it 'handles successfully an empty file' do
       empty_file_processor.preprocess
-      expect(file_processor.offsets).to eq([])
+      expect(empty_file_processor.offsets).to eq([])
     end
   end
 
@@ -50,6 +50,19 @@ describe FileProcessor do
     it 'handles successfully an empty file' do
       empty_file_processor.preprocess
       expect(empty_file_processor.get_line(1)).to be_nil
+    end
+  end
+
+  describe 'Caching' do
+    it 'stores offsets in cache after preprocessing' do
+      file_processor.preprocess
+      expect(Rails.cache.read("file_offsets_#{Digest::SHA256.hexdigest(file_path)}")).to eq([ 0, 7, 14 ])
+    end
+
+    it 'clears cache when calling clear_cache' do
+      file_processor.preprocess
+      file_processor.clear_cache
+      expect(Rails.cache.read("file_offsets_#{Digest::SHA256.hexdigest(file_path)}")).to be_nil
     end
   end
 end

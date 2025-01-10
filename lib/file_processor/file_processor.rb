@@ -1,32 +1,65 @@
+require "digest"
+
 class FileProcessor
-  attr_reader :offsets
+  attr_reader :file_path
 
   def initialize(file_path)
     @file_path = file_path
-    @offsets = []
+    @cache_key = "file_offsets_#{digest_key}"
+    @checksum_key = "#{@cache_key}_checksum"
   end
 
+  # Lazily load offsets
+  def offsets
+    @offsets ||= fetch_offsets
+  end
+
+  # Preprocess the file to calculate line offsets and store them in the cache
   def preprocess
-    File.open(@file_path, "r") do |file|
-      file.each_line.with_index do |_, index|
-        @offsets[index] = file.pos
+    line_offsets = []
+    File.open(file_path, "r") do |file|
+      offset = 0
+      file.each_line do |line|
+        line_offsets << offset
+        offset += line.bytesize
       end
     end
+    Rails.cache.write(@cache_key, line_offsets)
+    Rails.cache.write(@checksum_key, current_checksum)
+    line_offsets
   end
 
-  def get_line(line_number)
-    return nil if line_number <= 0 || line_number > @offsets.size    
+   # Retrieve a specific line from the file by its number
+   def get_line(line_number)
+    return nil if line_number <= 0 || line_number > offsets.size
 
-    offset_index = line_number - 1
-
-    File.open(@file_path, "r") do |file|
-      start_offset = if offset_index > 0 then offsets[offset_index - 1] else 0 end
-      end_offset = offsets[offset_index] || file.size # Handle last line case
-
-      file.seek(start_offset)
-      file.read(end_offset - start_offset)
+    File.open(file_path, "r") do |file|
+      file.seek(offsets[line_number - 1])
+      file.readline
     end
   rescue EOFError
     nil
+  end
+
+  private
+
+  # Generate a digest key based on the file path
+  def digest_key
+    Digest::SHA256.hexdigest(file_path)
+  end
+
+  # Calculate the current checksum of the file
+  def current_checksum
+    Digest::SHA256.file(file_path).hexdigest
+  end
+
+  # Fetch offsets from cache or preprocess if necessary
+  def fetch_offsets
+    cached_checksum = Rails.cache.fetch(@checksum_key)
+    if cached_checksum != current_checksum
+      preprocess
+    else
+      Rails.cache.fetch(@cache_key) || preprocess
+    end
   end
 end

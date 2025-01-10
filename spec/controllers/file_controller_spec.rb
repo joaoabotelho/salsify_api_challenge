@@ -48,7 +48,7 @@ describe FileController, type: :controller do
       get :show, params: { id: 4 }
       expect(response).to have_http_status(:content_too_large)
       expect(JSON.parse(response.body)).to eq({
-        'error' => 'Line number over the limit of the file'
+        'error' => 'Line not found'
       })
     end
 
@@ -64,7 +64,15 @@ describe FileController, type: :controller do
       get :show, params: { id: 1 }
       expect(response).to have_http_status(:content_too_large)
       expect(JSON.parse(response.body)).to eq({
-        'error' => 'Line number over the limit of the file'
+        'error' => 'Line not found'
+      })
+    end
+
+    it 'caches the response for a valid line number' do
+      get :show, params: { id: 1 }
+      expect(Rails.cache.read("file_line_1")).to eq({
+        line_number: 1,
+        content: 'Line 1'
       })
     end
   end
