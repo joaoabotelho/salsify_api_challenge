@@ -41,16 +41,22 @@ class FileProcessor
     nil
   end
 
+  # Calculate the current checksum of the file
+  def current_checksum
+    Digest::SHA256.file(file_path).hexdigest
+  end
+
+  # Clear the cached offsets
+  def clear_cache
+    Rails.cache.delete(@cache_key)
+    Rails.cache.delete(@checksum_key)
+  end
+
   private
 
   # Generate a digest key based on the file path
   def digest_key
     Digest::SHA256.hexdigest(file_path)
-  end
-
-  # Calculate the current checksum of the file
-  def current_checksum
-    Digest::SHA256.file(file_path).hexdigest
   end
 
   # Fetch offsets from cache or preprocess if necessary

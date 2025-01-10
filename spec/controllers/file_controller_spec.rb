@@ -70,7 +70,7 @@ describe FileController, type: :controller do
 
     it 'caches the response for a valid line number' do
       get :show, params: { id: 1 }
-      expect(Rails.cache.read("file_line_1")).to eq({
+      expect(Rails.cache.read("file_line_#{Digest::SHA256.file(file_path).hexdigest}_1")).to eq({
         line_number: 1,
         content: 'Line 1'
       })
