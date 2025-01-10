@@ -29,7 +29,9 @@ module SalsifyApi
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
-    config.file_path = ENV['FILE_PATH'] || 'default_file.txt'
+    config.file_path = ENV["FILE_PATH"] || "default_file.txt"
+
+    config.autoload_paths << Rails.root.join("lib")
 
     config.autoload_paths << Rails.root.join('lib')
   end

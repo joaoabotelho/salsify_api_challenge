@@ -19,12 +19,12 @@ describe FileProcessor do
     empty_tmp_file.rewind
     empty_tmp_file.path
   end
-  let(:empty_file_processor) {described_class.new(empty_file_path)}
+  let(:empty_file_processor) { described_class.new(empty_file_path) }
 
   describe 'preprocess' do
     it 'calculates the correct offsets for each line' do\
       file_processor.preprocess
-      expect(file_processor.offsets).to eq([7, 14, 21])
+      expect(file_processor.offsets).to eq([ 7, 14, 21 ])
     end
 
     it 'handles successfully an empty file' do
@@ -45,7 +45,7 @@ describe FileProcessor do
     it 'returns nil for an invalid line number' do
       expect(file_processor.get_line(0)).to be_nil
       expect(file_processor.get_line(4)).to be_nil
-    end  
+    end
 
     it 'handles successfully an empty file' do
       empty_file_processor.preprocess
