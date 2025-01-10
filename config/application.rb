@@ -30,5 +30,7 @@ module SalsifyApi
     config.api_only = true
 
     config.file_path = ENV['FILE_PATH'] || 'default_file.txt'
+
+    config.autoload_paths << Rails.root.join('lib')
   end
 end
