@@ -6,7 +6,6 @@ class FileProcessor
   def initialize(file_path)
     @file_path = file_path
     @cache_key = "file_offsets_#{digest_key}"
-    @checksum_key = "#{@cache_key}_checksum"
   end
 
   # Lazily load offsets
@@ -25,7 +24,6 @@ class FileProcessor
       end
     end
     Rails.cache.write(@cache_key, line_offsets)
-    Rails.cache.write(@checksum_key, current_checksum)
     line_offsets
   end
 
@@ -41,15 +39,9 @@ class FileProcessor
     nil
   end
 
-  # Calculate the current checksum of the file
-  def current_checksum
-    Digest::SHA256.file(file_path).hexdigest
-  end
-
   # Clear the cached offsets
   def clear_cache
     Rails.cache.delete(@cache_key)
-    Rails.cache.delete(@checksum_key)
   end
 
   private
@@ -61,11 +53,6 @@ class FileProcessor
 
   # Fetch offsets from cache or preprocess if necessary
   def fetch_offsets
-    cached_checksum = Rails.cache.fetch(@checksum_key)
-    if cached_checksum != current_checksum
-      preprocess
-    else
-      Rails.cache.fetch(@cache_key) || preprocess
-    end
+    Rails.cache.fetch(@cache_key) || preprocess
   end
 end

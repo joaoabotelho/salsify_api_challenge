@@ -23,8 +23,7 @@ class FileController < ApplicationController
 
    # Fetch the line content from cache or file processor
    def fetch_or_cache_line(line_number)
-    file_digest = FILE_PROCESSOR.current_checksum # ensures cache invalidation when the file changes
-    cache_key = "file_line_#{file_digest}_#{line_number}"
+    cache_key = "file_line_#{line_number}"
 
     Rails.cache.fetch(cache_key, expires_in: 5.minutes) do
       content = FILE_PROCESSOR.get_line(line_number)
