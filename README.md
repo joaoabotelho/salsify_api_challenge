@@ -3,7 +3,7 @@
 
 ---
 
-## **How Does Your System Work?**  
+## **System Overview**
 
 The system is designed to efficiently retrieve specific lines from large files without loading the entire file into memory. Here’s how it works:  
 
