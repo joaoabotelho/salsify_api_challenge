@@ -78,7 +78,7 @@ With these solutions, the system remains scalable, efficient, and capable of han
 
 ## **Development Time and Future Improvements**
 
-- **Time Spent:** Approximately 10 hours.
+- **Time Spent:** Approximately 10 hours, including research, setup, coding, and testing.
 - **Future Improvements:**
   - **Error Handling:** Add robust handling for edge cases like corrupted files.
   - **Pre-Warming Caches:** Pre-warm caches with some of the most frequently requested lines to improve response time for commonly accessed data.
