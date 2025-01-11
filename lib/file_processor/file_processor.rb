@@ -5,7 +5,6 @@ class FileProcessor
 
   def initialize(file_path)
     @file_path = file_path
-    @cache_key = "file_offsets_#{digest_key}"
   end
 
   # Lazily load offsets
@@ -23,12 +22,12 @@ class FileProcessor
         offset += line.bytesize
       end
     end
-    Rails.cache.write(@cache_key, line_offsets)
+    Rails.cache.write(cache_key, line_offsets, expires_in: 1.hour)
     line_offsets
   end
 
-   # Retrieve a specific line from the file by its number
-   def get_line(line_number)
+  # Retrieve a specific line from the file by its number
+  def get_line(line_number)
     return nil if line_number <= 0 || line_number > offsets.size
 
     File.open(file_path, "r") do |file|
@@ -41,10 +40,15 @@ class FileProcessor
 
   # Clear the cached offsets
   def clear_cache
-    Rails.cache.delete(@cache_key)
+    Rails.cache.delete(cache_key)
   end
 
   private
+
+  # Memoize the cache key to avoid recalculating it
+  def cache_key
+    @cache_key ||= "file_offsets_#{digest_key}"
+  end
 
   # Generate a digest key based on the file path
   def digest_key
@@ -53,6 +57,8 @@ class FileProcessor
 
   # Fetch offsets from cache or preprocess if necessary
   def fetch_offsets
-    Rails.cache.fetch(@cache_key) || preprocess
+    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+      preprocess
+    end
   end
 end
