@@ -1,4 +1,5 @@
 require 'file_processor/file_processor'
+require 'tmpdir'
 
 # frozen_string_literal: true
 
