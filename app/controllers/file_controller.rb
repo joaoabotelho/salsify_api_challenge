@@ -21,20 +21,20 @@ class FileController < ApplicationController
     line_number
   end
 
-   # Fetch the line content from cache or file processor
-   def fetch_or_cache_line(line_number)
+  # Fetch the line content from cache or file processor
+  def fetch_or_cache_line(line_number)
     cache_key = "file_line_#{line_number}"
 
     Rails.cache.fetch(cache_key, expires_in: 5.minutes) do
       content = FILE_PROCESSOR.get_line(line_number)
-      raise ActionController::RoutingError, "Line not found" if content.nil?
+      raise ActionController::RoutingError, "Line #{line_number} not found" if content.nil?
 
       { line_number: line_number, content: content.strip }
     end
   end
 
-   # Render a JSON error response
-   def render_error(message, status)
+  # Render a JSON error response
+  def render_error(message, status)
     render json: { error: message }, status: status
   end
 end

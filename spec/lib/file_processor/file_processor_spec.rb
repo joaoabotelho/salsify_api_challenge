@@ -9,7 +9,7 @@ describe FileProcessor do
   let(:empty_file_path) { 'spec/fixtures/files/empty_file.txt' }
   let(:empty_file_processor) { described_class.new(empty_file_path) }
 
-  describe 'preprocess' do
+  describe '#preprocess' do
     it 'calculates the correct offsets for each line' do\
       file_processor.preprocess
       expect(file_processor.offsets).to eq([ 0, 7, 14 ])

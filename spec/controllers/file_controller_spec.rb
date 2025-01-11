@@ -40,7 +40,7 @@ describe FileController, type: :controller do
       get :show, params: { id: 4 }
       expect(response).to have_http_status(:content_too_large)
       expect(JSON.parse(response.body)).to eq({
-        'error' => 'Line not found'
+        'error' => 'Line 4 not found'
       })
     end
 
@@ -53,7 +53,7 @@ describe FileController, type: :controller do
       get :show, params: { id: 1 }
       expect(response).to have_http_status(:content_too_large)
       expect(JSON.parse(response.body)).to eq({
-        'error' => 'Line not found'
+        'error' => 'Line 1 not found'
       })
     end
 
