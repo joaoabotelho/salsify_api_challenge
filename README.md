@@ -1,95 +1,93 @@
-# Salsify Line Server Problem
-###### by João Botelho
+# **Salsify Line Server Problem**  
+###### *by João Botelho*
 
-### How does your system work?
+---
 
-The system processes files by first preprocessing them into line offsets, which are then stored in cache at every server startup. This preprocessing step allows the system to quickly retrieve a specific line without needing to load the entire file into memory, ensuring **O(1)** constant-time access for reading lines.
+## **How Does Your System Work?**  
 
-The system exposes a `GET` request at `/lines/:line_number`, which fetches the content of the requested line from the file. 
+The system is designed to efficiently retrieve specific lines from large files without loading the entire file into memory. Here’s how it works:  
 
-1. **Line Validation**: The line number is validated to ensure it is positive and an integer. If it is not, the server returns a `400 Bad Request` status code.
-2. **Cache Check**: If the line number is valid, the system checks if the line is present in the cache. 
-   - If it is in the cache, the line is returned immediately.
-   - If not, the system uses the preprocessed offset array to directly retrieve the line from the file and cache it for future requests.
+1. **Preprocessing Files:**  
+   At server startup, the file is preprocessed to calculate line offsets, which are stored in a cache. This enables constant-time (**O(1)**) access to any line using its offset.
 
-This approach optimizes performance by caching the line for 1 minute after its first retrieval. This ensures that frequently accessed lines are quickly served from memory, reducing the need for slower disk I/O operations. By minimizing disk reads (which are more expensive than RAM accesses), the system achieves faster response times for repeated line requests.
+2. **Line Retrieval:**  
+   The system exposes a `GET` endpoint at `/lines/:line_number` to fetch a specific line.  
+   - **Validation:** The line number is validated (must be a positive integer). Invalid requests return a `400 Bad Request`.  
+   - **Cache Lookup:** If the line is cached, it is returned immediately.  
+   - **Direct Access:** If not cached, the system uses the preprocessed offsets to fetch the line from the file and caches it for 1 minute.  
 
-The response will return a `200 OK` HTTP status code with the following JSON format:
+3. **Response Format:**  
+   The server responds with the following JSON for valid requests:  
+   ```json
+   {
+       "line_number": 1,
+       "content": "Hello World"
+   }
+    ```
 
-```json
-{
-    "line_number": 1,
-    "content": "Hello World"
-}
-```
+If the requested line exceeds the file size, a `413 Content Too Large` status code is returned.
 
-If the requested line exceeds the total number of lines in the file, a `413 Content Too Large` status code is returned.
+This caching mechanism minimizes disk reads, improves performance, and ensures quick response times for repeated requests.
 
-## How will your system perform with a 1 GB file? a 10 GB file? a 100 GB file?
+---
 
-The size of the file does not significantly impact the retrieval time for a specific line, as only the relevant line offset is used to directly access the line in the file, without loading the entire file into memory. This is possible because `File.open` in Ruby performs lazy loading, meaning it only loads the part of the file needed to fulfill the request. This ensures **O(1)** constant-time access for reading lines.
+## **Performance with Large Files**
 
-However, as the file size increases, there are two main challenges that arise:
+The system performs efficiently regardless of file size due to its **lazy loading mechanism** (via `File.open`) and **direct offset access**. However, larger files introduce challenges:
 
-1. **Preprocessing Large Files on Server Startup:**  
-   For very large files, the preprocessing step (which calculates line offsets) happens on server startup. If the file is too large, this preprocessing process will block the server from fully starting until it completes. This delay could result in longer startup times and make it difficult to scale the application in environments where quick restarts are necessary.
+### **Challenges**
+1. **Preprocessing on Startup**  
+   Preprocessing large files at startup can block the server and delay availability.
 
-2. **Stateless and Small Server Requirements:**  
-   One of the goals of the system is to keep the server stateless and lightweight. With large files, however, this becomes challenging. Storing a large file on the same server could significantly increase the memory footprint and disk space usage. This could make the server less portable, more expensive to run, and harder to scale, especially when handling multiple large files or serving high traffic.
+2. **Stateless and Lightweight Servers**  
+   Storing large files locally increases server resource usage, making it harder to scale and more expensive to run.
 
-### Solutions:
-- **File Preprocessing in a Separate Service:**  
-  Instead of tying file preprocessing to server startup, we could offload this responsibility to a dedicated preprocessing service. This service would handle generating line offsets, checksums, and other metadata before the server starts. By using Redis, the offsets and metadata could be stored in a centralized cache, making them immediately accessible to the server upon startup. This approach ensures the server is fully operational from the moment it starts, without delays caused by file preprocessing, and maintains overall system resilience.
+### **Proposed Solutions**
+- **Separate Preprocessing Service**  
+  Offload file preprocessing to a dedicated service that generates offsets and stores them in Redis. This ensures the server starts up quickly and remains operational.
 
-- **External Blob Storage (e.g., S3):**  
-  To keep the server stateless and small, the actual file can be stored in an external blob storage solution like S3. This allows the server to remain lightweight while still being able to handle very large files. The server would fetch only the relevant portion of the file for the requested line, reducing memory consumption and bandwidth usage.  
+- **External Blob Storage (e.g., S3)**  
+  Store files in external storage like S3. Fetch only the required portion of the file for the requested line, keeping the server stateless and reducing memory and bandwidth usage.
 
-  By using chunking techniques in S3, the server can pull only the chunk corresponding to the requested line. This minimizes bandwidth consumption while ensuring that the server doesn’t need to store large files locally.
+With these solutions, the system remains scalable, efficient, and capable of handling very large files.
 
-With these solutions of leveraging caching and distributed storage solutions, the system remains scalable, stateless, and efficient even when dealing with very large files.
+---
 
-## How will your system perform with 100 users? 10,000 users? 1,000,000 users?
+## **Performance with High Traffic**
 
-- **100 Users:**  The system can handle this number of concurrent users without significant issues. A cache is used to store frequently requested data, reducing the need for slower disk I/O operations and ensuring quick response times for repeated requests. The preprocessing of line offsets allows for efficient O(1) line retrieval, even under moderate load.
+- **100 Users:** The system performs smoothly with caching and efficient line retrieval, handling moderate traffic without issues.
+- **10,000 Users:** Horizontal scaling (e.g., load balancers and multiple servers) is required to distribute traffic effectively. Redis ensures consistent cache access across servers.
+- **1,000,000 Users:** Advanced optimizations, such as rate limiting, pre-warming caches, and region-based load balancing, are necessary to maintain performance.
 
-- **10,000 Users:** Performance remains acceptable, but the system may begin to show signs of strain as concurrent requests increase. To manage the load effectively, horizontal scaling with multiple server instances and a load balancer would be necessary. Using Redis as a centralized caching layer ensures consistency and quick access across distributed servers.
+---
 
-- **1,000,000 Users:** At this scale, further optimization is essential to maintain performance. Advanced caching strategies, such as pre-warming the cache with frequently accessed lines, and rate limiting (e.g., IP-based or user-based) would help mitigate the impact of high traffic. A distributed architecture with multiple server instances and potentially region-based load balancing would ensure that no single instance becomes a bottleneck. For larger files, offloading storage to external blob solutions like S3 would minimize local resource consumption, allowing servers to remain lightweight and stateless.
+## **Resources Consulted**
 
+- [Ruby File Class Documentation](https://ruby-doc.org/core-2.5.5/File.html)
+- [Rails Caching Guide](https://guides.rubyonrails.org/caching_with_rails.html#low-level-caching-using-rails-cache)
 
-## What documentation, websites, papers, etc did you consult in doing this assignment?
+---
 
-- **Low Level Caching using Rails:** https://guides.rubyonrails.org/caching_with_rails.html#low-level-caching-using-rails-cache
-- **File Ruby Class Docs:** https://ruby-doc.org/core-2.5.5/File.html
+## **Framework and Third-Party Tools Used**
 
-## What third-party libraries or other tools does the system use? How did you choose each library or framework you used?
+- **Rails:** Chosen for its robust framework and built-in support for caching and file handling.
+- **RSpec:** Preferred for its descriptive syntax and strong BDD support.
+- **Rubocop:** Ensures consistent code formatting and linting.
 
-- **Rails:** The framework of choice for rapid development, which supports caching and file handling out of the box.
-- **Rubocop:** used library for consistent formatting and lint
-- **RSpec:** common Rails testing library focused on behavior-driven development with a strong community and ecosystem
+---
 
-## How long did you spend on this exercise? If you had unlimited more time to spend on this, how would you spend it and how would you prioritize each item?
+## **Development Time and Future Improvements**
 
-- **Time spent:** Approximately 10 hours, including setup, coding, and testing.
-- **If I had unlimited time:(WIP)**
-  - **Improve error handling:** Add more robust handling for edge cases, such as corrupted files or network issues.
+- **Time Spent:** Approximately 10 hours.
+- **Future Improvements:**
+  - **Error Handling:** Add robust handling for edge cases like corrupted files.
+  - **Pre-Warming Caches:** Pre-warm caches with some of the most frequently requested lines to improve response time for commonly accessed data.
+  - **Redis Support and Separate Preprocessing Service:** Add Redis cache support to store line offsets and offload file preprocessing to a dedicated service, removing the need for preprocessing during server startup.
 
+---
 
-## If you were to critique your code, what would you have to say about it?(WIP)
+## **Additional Considerations**
 
-- **Strengths:**
-
-- **Areas for Improvement:**
-  - **Rate Limiting:** I would implement more sophisticated rate-limiting mechanisms, such as IP-based limits, to prevent abuse.
-  - **Error handling:** There could be more comprehensive error handling for edge cases, like file corruption or missing data.
-
-## Additional Considerations:
-
-- **Checksum Cache:** If we transition to a system where it handles multiple files or the file is going to frequently updated a checksum cache is essential. By storing the checksum in a cache, the system can verify if the file has changed without needing to recompute all offsets, which helps maintain performance.
-  
-- **File Chunking for Large Files:** For very large files, it is not efficient to keep the entire file on the same machine as the server. Using a solution like Amazon S3 for blob storage ensures that the server can remain stateless and scale easily. By breaking the file into chunks, only the chunk relevant to the requested line is fetched, minimizing bandwidth and storage consumption.
-
-- **Rate Limiting:** To handle high traffic and prevent overloads, implementing rate limiting would be necessary. A simple IP-based rate limiter could ensure that a single client doesn't overwhelm the server.
-
-- **Cache Optimization:** In addition to caching offsets, caching entire lines or chunks could also improve speed for repeated requests, reducing disk I/O and speeding up the response time.
-
+- **Rate Limiting:** Implement user- or IP-based rate limits to prevent abuse.
+- **File Checksums:** In the case the file is going to be frequently updatd we should use checksums to detect file changes and avoid reprocessing.
+- **Blob Storage:** For very large files, store them in a solution like S3 to minimize server resources and improve scalability. With this improvement, we also want to divide the file into chunks, reducing bandwidth consumption by requesting only the chunk of the file that contains the requested line.
