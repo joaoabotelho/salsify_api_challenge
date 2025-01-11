@@ -1,25 +1,12 @@
 require 'file_processor/file_processor'
-require 'tmpdir'
 
 # frozen_string_literal: true
 
 describe FileProcessor do
-  let(:file_content) { "Line 1\nLine 2\nLine 3\n" }
-  let(:file_path) do
-    # Create a temporary file with test content
-    tmp_file = Tempfile.new('test_file')
-    tmp_file.write(file_content)
-    tmp_file.rewind
-    tmp_file.path
-  end
+  let(:file_path) { 'spec/fixtures/files/test_file.txt' }
   let(:file_processor) { described_class.new(file_path) }
 
-  let(:empty_file_path) do
-    empty_tmp_file = Tempfile.new('empty_file')
-    empty_tmp_file.write("")
-    empty_tmp_file.rewind
-    empty_tmp_file.path
-  end
+  let(:empty_file_path) { 'spec/fixtures/files/empty_file.txt' }
   let(:empty_file_processor) { described_class.new(empty_file_path) }
 
   describe 'preprocess' do

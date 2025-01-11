@@ -1,17 +1,9 @@
 require 'rails_helper'
-require 'tmpdir'
 
 # frozen_string_literal: true
 
 describe FileController, type: :controller do
-  let(:file_content) { "Line 1\nLine 2\nLine 3\n" }
-  let(:file_path) do
-    # Create a temporary file with test content
-    tmp_file = Tempfile.new('test_file')
-    tmp_file.write(file_content)
-    tmp_file.rewind
-    tmp_file.path
-  end
+  let(:file_path) { 'spec/fixtures/files/test_file.txt' }
 
   before do
     # Preprocess the file and set it up as the global FILE_PROCESSOR
@@ -53,10 +45,7 @@ describe FileController, type: :controller do
     end
 
     it 'returns a 413 error with an empty file' do
-      empty_tmp_file = Tempfile.new('empty_file')
-      empty_tmp_file.write("")
-      empty_tmp_file.rewind
-      empty_tmp_file_path = empty_tmp_file.path
+      empty_tmp_file_path = 'spec/fixtures/files/empty_file.txt'
       file_processor = FileProcessor.new(empty_tmp_file_path)
       file_processor.preprocess
       stub_const('FILE_PROCESSOR', file_processor)
