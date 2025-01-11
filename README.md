@@ -88,6 +88,6 @@ With these solutions, the system remains scalable, efficient, and capable of han
 
 ## **Additional Considerations**
 
-- **Rate Limiting:** Implement user- or IP-based rate limits to prevent abuse.
+- **Rate Limiting:** Implement user or IP based rate limits to prevent abuse.
 - **File Checksums:** In the case the file is going to be frequently updatd we should use checksums to detect file changes and avoid reprocessing.
 - **Blob Storage:** For very large files, store them in a solution like S3 to minimize server resources and improve scalability. With this improvement, we also want to divide the file into chunks, reducing bandwidth consumption by requesting only the chunk of the file that contains the requested line.
