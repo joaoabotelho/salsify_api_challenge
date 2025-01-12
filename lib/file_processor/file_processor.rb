@@ -11,18 +11,11 @@ class FileProcessor
     @offsets ||= fetch_offsets
   end
 
-  # Preprocess the file to calculate line offsets and store them in the cache
-  def preprocess
-    line_offsets = []
-    File.open(file_path, "r") do |file|
-      offset = 0
-      file.each_line do |line|
-        line_offsets << offset
-        offset += line.bytesize
-      end
+  # Fetch offsets from cache or preprocess the file in the cache
+  def fetch_offsets
+    Rails.cache.fetch(@cache_key) do
+      preprocess
     end
-    Rails.cache.write(@cache_key, line_offsets, expires_in: 1.hour)
-    line_offsets
   end
 
   # Retrieve a specific line from the file by its number
@@ -44,10 +37,16 @@ class FileProcessor
 
   private
 
-  # Fetch offsets from cache or preprocess if necessary
-  def fetch_offsets
-    Rails.cache.fetch(@cache_key, expires_in: 1.hour) do
-      preprocess
+  # Process the file to calculate line offsets
+  def preprocess
+    line_offsets = []
+    File.open(file_path, "r") do |file|
+      offset = 0
+      file.each_line do |line|
+        line_offsets << offset
+        offset += line.bytesize
+      end
     end
+    line_offsets
   end
 end
