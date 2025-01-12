@@ -8,13 +8,13 @@
 The system is designed to efficiently retrieve specific lines from large files without loading the entire file into memory. Here’s how it works:  
 
 1. **Preprocessing Files:**  
-   At server startup, the file is preprocessed to calculate line offsets, which are stored in a cache. This enables constant-time (**O(1)**) access to any line using its offset.
+   At server startup, the file is preprocessed to calculate line offsets, which are stored in a cache. This enables constant-time (**O(1)**) access to retrieve the offset of any line and linear-time complexity (**O(L)**) to read the actual line from the file, where **L** is the length of the line.
 
 2. **Line Retrieval:**  
    The system exposes a `GET` endpoint at `/lines/:line_number` to fetch a specific line.  
    - **Validation:** The line number is validated (must be a positive integer). Invalid requests return a `400 Bad Request`.  
    - **Cache Lookup:** If the line is cached, it is returned immediately.  
-   - **Direct Access:** If not cached, the system uses the preprocessed offsets to fetch the line from the file and caches it for 1 minute.  
+   - **Direct Access:** If not cached, the system uses the preprocessed offsets to fetch the line from the file and caches it for 5 minute.  
 
 3. **Response Format:**  
    The server responds with the following JSON for valid requests:  
@@ -40,11 +40,12 @@ The system performs efficiently regardless of file size due to its **lazy loadin
    Preprocessing large files at startup can block the server and delay availability.
 
 2. **Stateless and Lightweight Servers**  
-   Storing large files locally increases server resource usage, making it harder to scale and more expensive to run.
+   Coupling the file with the server’s runtime also increases the difficulty of scaling the service horizontally to allow for more traffic (the file would have to exist in every single machine)
+
 
 ### **Proposed Solutions**
 - **Separate Preprocessing Service**  
-  Offload file preprocessing to a dedicated service that generates offsets and stores them in Redis. This ensures the server starts up quickly and remains operational.
+  Offload file preprocessing to a dedicated service that generates offsets and stores them an in-memory cache such as Redis. This ensures the server starts up quickly and remains operational.
 
 - **External Blob Storage (e.g., S3)**  
   Store files in external storage like S3. Fetch only the required portion of the file for the requested line, keeping the server stateless and reducing memory and bandwidth usage.
@@ -65,6 +66,7 @@ With these solutions, the system remains scalable, efficient, and capable of han
 
 - [Ruby File Class Documentation](https://ruby-doc.org/core-2.5.5/File.html)
 - [Rails Caching Guide](https://guides.rubyonrails.org/caching_with_rails.html#low-level-caching-using-rails-cache)
+- [Ruby File#seak and File#readline performance ChatGPT](https://chatgpt.com/share/6782ffa5-dea8-800c-85f1-24654910549e)
 
 ---
 
