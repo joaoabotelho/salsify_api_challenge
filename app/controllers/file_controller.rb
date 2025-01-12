@@ -3,10 +3,13 @@ class FileController < ApplicationController
     line_number = validate_line_number(params[:id])
     return unless line_number
 
-    result = fetch_or_cache_line(line_number)
-    render json: result
-  rescue ActionController::RoutingError => e
-    render_error(e.message, :content_too_large)
+    content = fetch_or_cache_line(line_number)
+    if content.nil?
+      render_error("Line #{line_number} not found", :content_too_large)
+      return nil
+    end
+
+    render json: { line_number: line_number, content: content.strip }
   end
 
   private
@@ -26,10 +29,7 @@ class FileController < ApplicationController
     cache_key = "file_line_#{line_number}"
 
     Rails.cache.fetch(cache_key, expires_in: 5.minutes) do
-      content = FILE_PROCESSOR.get_line(line_number)
-      raise ActionController::RoutingError, "Line #{line_number} not found" if content.nil?
-
-      { line_number: line_number, content: content.strip }
+      FILE_PROCESSOR.get_line(line_number)
     end
   end
 

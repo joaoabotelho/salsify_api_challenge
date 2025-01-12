@@ -59,10 +59,7 @@ describe FileController, type: :controller do
 
     it 'caches the response for a valid line number' do
       get :show, params: { id: 1 }
-      expect(Rails.cache.read("file_line_1")).to eq({
-        line_number: 1,
-        content: 'Line 1'
-      })
+      expect(Rails.cache.read("file_line_1")).to eq("Line 1\n")
     end
   end
 end
