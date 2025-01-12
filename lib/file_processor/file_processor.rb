@@ -33,7 +33,7 @@ class FileProcessor
 
   # Retrieve a specific line from the file by its number
   def get_line_from_file(line_number)
-    offset = Rails.cache.read("file_offset_#{line_number}")
+    offset = fetch_offset(line_number)
 
     File.open(file_path, "r") do |file|
       file.seek(offset)
@@ -41,5 +41,11 @@ class FileProcessor
     end
   rescue EOFError
     nil
+  end
+
+  def fetch_offset(line_number)
+    Rails.cache.fetch("file_offset_#{line_number}") do
+      preprocess
+    end
   end
 end
