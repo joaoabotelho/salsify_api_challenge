@@ -90,6 +90,7 @@ With these solutions, the system remains scalable, efficient, and capable of han
 
 ## **Additional Considerations**
 
+- **Binary Files and File Encoding** The current implementation relies on `each_line` and `bytesize`, which assumes the file is text-based and properly delimited by line breaks. Binary files typically don’t have clear line delimiters and might contain null bytes or arbitrary data that could break the current system.
 - **Rate Limiting:** Implement user or IP based rate limits to prevent abuse.
 - **File Checksums:** In the case the file is going to be frequently updatd we should use checksums to detect file changes and avoid reprocessing.
 - **Blob Storage:** For very large files, store them in a solution like S3 to minimize server resources and improve scalability. With this improvement, we also want to divide the file into chunks, reducing bandwidth consumption by requesting only the chunk of the file that contains the requested line.
