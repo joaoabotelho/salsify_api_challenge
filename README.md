@@ -97,14 +97,13 @@ With these solutions, the system remains scalable, efficient, and capable of han
 
 - [Ruby File Class Documentation](https://ruby-doc.org/core-2.5.5/File.html)
 - [Rails Caching Guide](https://guides.rubyonrails.org/caching_with_rails.html#low-level-caching-using-rails-cache)
-- [Ruby File#seak and File#readline performance ChatGPT](https://chatgpt.com/share/6782ffa5-dea8-800c-85f1-24654910549e)
 
 ---
 
 ## **Framework and Third-Party Tools Used**
 
 - **Rails:** Chosen for its robust framework and built-in support for caching and file handling.
-- **RSpec:** Preferred for its descriptive syntax and strong BDD support.
+- **RSpec:** Preferred for its descriptive syntax and strong behavior-driven development support.
 - **Rubocop:** Ensures consistent code formatting and linting.
 
 ---
