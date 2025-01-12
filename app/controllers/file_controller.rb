@@ -3,7 +3,7 @@ class FileController < ApplicationController
     line_number = validate_line_number(params[:id])
     return unless line_number
 
-    content = fetch_or_cache_line(line_number)
+    content = FILE_PROCESSOR.get_line(line_number)
     if content.nil?
       render_error("Line #{line_number} not found", :content_too_large)
       return nil
@@ -22,15 +22,6 @@ class FileController < ApplicationController
       return nil
     end
     line_number
-  end
-
-  # Fetch the line content from cache or file processor
-  def fetch_or_cache_line(line_number)
-    cache_key = "file_line_#{line_number}"
-
-    Rails.cache.fetch(cache_key, expires_in: 5.minutes) do
-      FILE_PROCESSOR.get_line(line_number)
-    end
   end
 
   # Render a JSON error response

@@ -18,10 +18,19 @@ class FileProcessor
     end
   end
 
-  # Retrieve a specific line from the file by its number
+  # Get a specific line from cache or the file by its number
   def get_line(line_number)
     return nil if line_number <= 0 || line_number > offsets.size
 
+    Rails.cache.fetch("file_line_#{line_number}", expires_in: 5.minutes) do
+      get_line_from_file(line_number)
+    end
+  end
+
+  private
+
+  # Retrieve a specific line from the file by its number
+  def get_line_from_file(line_number)
     File.open(file_path, "r") do |file|
       file.seek(offsets[line_number - 1])
       file.readline
@@ -29,8 +38,6 @@ class FileProcessor
   rescue EOFError
     nil
   end
-
-  private
 
   # Process the file to calculate line offsets
   def preprocess
