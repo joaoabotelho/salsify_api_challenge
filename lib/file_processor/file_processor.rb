@@ -1,10 +1,9 @@
-require "digest"
-
 class FileProcessor
   attr_reader :file_path
 
   def initialize(file_path)
     @file_path = file_path
+    @cache_key = "file_offsets"
   end
 
   # Lazily load offsets
@@ -22,7 +21,7 @@ class FileProcessor
         offset += line.bytesize
       end
     end
-    Rails.cache.write(cache_key, line_offsets, expires_in: 1.hour)
+    Rails.cache.write(@cache_key, line_offsets, expires_in: 1.hour)
     line_offsets
   end
 
@@ -40,24 +39,14 @@ class FileProcessor
 
   # Clear the cached offsets
   def clear_cache
-    Rails.cache.delete(cache_key)
+    Rails.cache.delete(@cache_key)
   end
 
   private
 
-  # Memoize the cache key to avoid recalculating it
-  def cache_key
-    @cache_key ||= "file_offsets_#{digest_key}"
-  end
-
-  # Generate a digest key based on the file path
-  def digest_key
-    Digest::SHA256.hexdigest(file_path)
-  end
-
   # Fetch offsets from cache or preprocess if necessary
   def fetch_offsets
-    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+    Rails.cache.fetch(@cache_key, expires_in: 1.hour) do
       preprocess
     end
   end

@@ -44,13 +44,13 @@ describe FileProcessor do
   describe 'Caching' do
     it 'stores offsets in cache after preprocessing' do
       file_processor.preprocess
-      expect(Rails.cache.read("file_offsets_#{Digest::SHA256.hexdigest(file_path)}")).to eq([ 0, 7, 14 ])
+      expect(Rails.cache.read("file_offsets")).to eq([ 0, 7, 14 ])
     end
 
     it 'clears cache when calling clear_cache' do
       file_processor.preprocess
       file_processor.clear_cache
-      expect(Rails.cache.read("file_offsets_#{Digest::SHA256.hexdigest(file_path)}")).to be_nil
+      expect(Rails.cache.read("file_offsets")).to be_nil
     end
   end
 end
