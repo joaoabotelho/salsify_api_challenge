@@ -6,7 +6,7 @@ class FileProcessor
     @line_count = 0
   end
 
-  # Process the file to calculate line offsets
+  # Process the file to calculate line offset and cache it
   def preprocess
     offset = 0
     @line_count = 0
