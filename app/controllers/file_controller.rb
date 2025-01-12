@@ -1,9 +1,11 @@
+require "files/file_cache"
+
 class FileController < ApplicationController
   def show
     line_number = validate_line_number(params[:id])
     return unless line_number
 
-    content = FILE_PROCESSOR.get_line(line_number)
+    content = FileCache.fetch_line(line_number)
     return render_error("Line #{line_number} not found", :content_too_large) unless content
 
     render json: { line_number: line_number, content: content.strip }
