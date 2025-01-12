@@ -1,5 +1,36 @@
 # **Salsify Line Server Problem**  
 ###### *by João Botelho*
+---
+
+## **Running and Testing the System**
+
+To test the API locally, follow these steps:
+
+#### **Prerequisites**  
+Ensure you have Ruby installed on your system. If not, please install it before proceeding.
+
+#### **Steps to Run the Server**  
+1. **Install Dependencies:**  
+   Run the following command in your terminal from the project's root directory to set up the environment:  
+   ```bash
+   ./build.sh
+   ```
+2. **Start the Server**  
+   Use the command below to start the server and process the specified file:  
+   ```bash
+   ./run.sh <file_path>
+   ```
+   Replace <file_path> with the path to the file you want to process.
+   You can use the provided template file, `default_file.txt`, located in the main directory.
+
+#### Verify the Server
+Once the server starts, it will be ready to handle requests in development mode.
+
+#### Running Tests
+Run the test suite using RSpec with the following command:
+```bash
+bundle exec rspec
+```
 
 ---
 
