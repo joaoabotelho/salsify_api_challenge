@@ -46,11 +46,5 @@ describe FileProcessor do
       file_processor.fetch_offsets
       expect(Rails.cache.read("file_offsets")).to eq([ 0, 7, 14 ])
     end
-
-    it 'clears cache when calling clear_cache' do
-      file_processor.fetch_offsets
-      file_processor.clear_cache
-      expect(Rails.cache.read("file_offsets")).to be_nil
-    end
   end
 end

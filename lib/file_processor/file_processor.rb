@@ -30,11 +30,6 @@ class FileProcessor
     nil
   end
 
-  # Clear the cached offsets
-  def clear_cache
-    Rails.cache.delete(@cache_key)
-  end
-
   private
 
   # Process the file to calculate line offsets
