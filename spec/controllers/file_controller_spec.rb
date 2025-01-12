@@ -8,7 +8,7 @@ describe FileController, type: :controller do
   before do
     # Preprocess the file and set it up as the global FILE_PROCESSOR
     @file_processor = FileProcessor.new(file_path)
-    @file_processor.preprocess
+    @file_processor.fetch_offsets
     stub_const('FILE_PROCESSOR', @file_processor)
   end
 
@@ -47,7 +47,7 @@ describe FileController, type: :controller do
     it 'returns a 413 error with an empty file' do
       empty_tmp_file_path = 'spec/fixtures/files/empty_file.txt'
       file_processor = FileProcessor.new(empty_tmp_file_path)
-      file_processor.preprocess
+      file_processor.fetch_offsets
       stub_const('FILE_PROCESSOR', file_processor)
 
       get :show, params: { id: 1 }
